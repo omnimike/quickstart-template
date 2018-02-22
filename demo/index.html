@@ -1,0 +1,143 @@
+<!doctype html>
+<head>
+    <meta charset="utf-8">
+    <title>LRN Quickstart Compiler</title>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/mode/javascript/javascript.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/mode/clike/clike.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/mode/css/css.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/mode/xml/xml.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/mode/htmlmixed/htmlmixed.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/mode/php/php.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/mode/python/python.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/keymap/vim.min.js"></script>
+    <script src="bundle.js"></script>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.min.css">
+    <style>
+        body {
+            font-family: museo500,"Helvetica Neue",Helvetica,Arial,sans-serif;
+        }
+        .CodeMirror {
+            height: auto
+        }
+        #error {
+            background-color: #ff6961;
+            padding: 0.5em;
+        }
+        .hidden {
+            display: none;
+        }
+        .editor-container {
+            display: inline-block;
+            width: 49%;
+            vertical-align: top;
+        }
+    </style>
+</head>
+
+<h1>Learnosity Quickstart Compiler</h1>
+
+<div>
+    <div class="editor-container">
+        <h2>Input code</h2>
+        <textarea id="codeEditor"></textarea>
+        <pre id="error" class="hidden"></pre>
+    </div>
+
+    <div class="editor-container">
+        <h2>PHP Output</h2>
+        <textarea id="php"></textarea>
+    </div>
+</div>
+
+<div>
+    <div class="editor-container">
+        <h2>Node.js Output</h2>
+        <textarea id="javascript"></textarea>
+    </div>
+
+    <div class="editor-container">
+        <h2>Python Output</h2>
+        <textarea id="python"></textarea>
+    </div>
+</div>
+
+<script>
+
+const demoCode = `
+/* Author API configuration parameters. */
+request = {
+    /* Display the item list view on load. */
+    "mode": "item_list",
+    "title.show": true,
+    "user": {
+        /* Unique author id */
+        "id": "author123456"
+    }
+}
+
+/*
+    Public & private security keys required to access Learnosity APIs and
+    data. These keys grant access to Learnosity's public demos account.
+    Learnosity will provide keys for your own private account.
+*/
+consumer_key = "my_consumer_key"
+consumer_secret = "my_consumer_secret"
+
+/* Parameters used to create security authorization. */
+security = {
+    "domain": "localhost",
+    "consumer_key": consumer_key
+}
+
+/*
+    Use Learnosity SDK to construct Author API configuration parameters,
+    and sign them securely with the $security and $consumerSecret parameters.
+
+*/
+sdk_init(
+    init,
+    signed_request, 
+    "author",
+    security,
+    consumer_secret,
+    request
+)
+`;
+const errorEl = document.getElementById('error');
+const codeEditorEl = document.getElementById('codeEditor');
+const phpEl = document.getElementById('php');
+const javascriptEl = document.getElementById('javascript');
+const pythonEl = document.getElementById('python');
+const codeEditor = CodeMirror.fromTextArea(codeEditorEl, {
+    lineNumbers: true,
+    viewportMargin: Infinity,
+    keyMap: "vim"
+});
+const phpEditor = CodeMirror.fromTextArea(phpEl, {
+    mode: 'php'
+});
+const javascriptEditor = CodeMirror.fromTextArea(javascriptEl, {
+    mode: 'javascript'
+});
+const pythonEditor = CodeMirror.fromTextArea(pythonEl, {
+    mode: 'python'
+});
+codeEditor.setValue(demoCode);
+codeEditor.on('changes', update);
+update();
+
+function update() {
+    const input = codeEditor.getValue();
+    try {
+        phpEditor.setValue('<?php\n\n' + LRNQuickstartCompiler.php(input));
+        javascriptEditor.setValue(LRNQuickstartCompiler.javascript(input));
+        pythonEditor.setValue(LRNQuickstartCompiler.python(input));
+        errorEl.classList.add('hidden');
+    } catch (err) {
+        errorEl.classList.remove('hidden');
+        errorEl.textContent = err.message;
+    }
+}
+
+</script>
